@@ -13,7 +13,7 @@ float MAX_VELOCITY_MAGNITUDE = 20;
 float GRAVITY_SWITCH_ON_PROBABILITY  = 0.010;
 float GRAVITY_SWITCH_OFF_PROBABILITY = 0.004;
 
-float TWIST_DISTANCE = 10.0;
+float TWIST_DISTANCE = 20.0;
 
 float SIDE_SEPARATION_DISTANCE = 10.0;
 
@@ -51,8 +51,7 @@ void setup() {
 }
 
 void draw() {
-  lights();
-  color ambientColor = color(50);
+  color ambientColor = color(160);
   color backgroundColor = #36b1bf;
 
   color ribbon1Color = #f23c50;
@@ -60,12 +59,12 @@ void draw() {
   color ribbon3Color = #ffcb05;
 
  
-  color directionalLightColor = color(80);
+  color directionalLightColor = color(200);
   directionalLight(red(directionalLightColor), green(directionalLightColor), green(directionalLightColor), 0, 0, -2);
   directionalLight(red(directionalLightColor), green(directionalLightColor), green(directionalLightColor), 0, 0,  2);
   
   // Top light
-  color topLightColor = color(80);
+  color topLightColor = color(90);
   directionalLight(red(topLightColor), blue(topLightColor), green(topLightColor), 0, 5, 0);
 
   
@@ -180,19 +179,18 @@ void draw() {
       vertex(nextPointVector.x,    nextPointVector.y,    nextPointVector.z    + sideSeparation);
       vertex(currentPointVector.x, currentPointVector.y, currentPointVector.z + sideSeparation);
       endShape();
+  
+      // Draw shadow
+      float yShadow = 100;
+      fill(#4ad9d9);
+      beginShape();
+      vertex(currentPointVector.x, yShadow, currentPointVector.z + sideSeparation);
+      vertex(currentTwistVector.x, yShadow, currentTwistVector.z + sideSeparation);
+      vertex(nextTwistVector.x,    yShadow, nextTwistVector.z    + sideSeparation);
+      vertex(nextPointVector.x,    yShadow, nextPointVector.z    + sideSeparation);
+      vertex(currentPointVector.x, yShadow, currentPointVector.z + sideSeparation);
+      endShape();
     }
-
-
-    // Draw shadow
-    float yShadow = 100;
-    fill(#4ad9d9);
-    beginShape();
-    vertex(currentPointVector.x, yShadow, currentPointVector.z);
-    vertex(currentTwistVector.x, yShadow, currentTwistVector.z);
-    vertex(nextTwistVector.x,    yShadow, nextTwistVector.z);
-    vertex(nextPointVector.x,    yShadow, nextPointVector.z);
-    vertex(currentPointVector.x, yShadow, currentPointVector.z);
-    endShape();
 
   }
 
