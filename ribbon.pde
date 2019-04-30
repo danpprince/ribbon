@@ -1,6 +1,6 @@
 import java.lang.Math;
 
-ArrayList<Float> velocityVector;
+PVector velocityVector;
 
 ArrayList<ArrayList<Float>> linePointsVectorList;
 ArrayList<ArrayList<Float>> twistPointsVectorList;
@@ -8,9 +8,9 @@ ArrayList<ArrayList<Float>> twistPointsVectorList;
 int LINE_LENGTH = 500;
 
 float VELOCITY_STEP_SIZE = 0.10;
-float GRAVITY_STEP_SIZE  = 0.50;
+float GRAVITY_STEP_SIZE  = 0.010;
 
-float MAX_VELOCITY = 8;
+float MAX_VELOCITY_MAGNITUDE = 16;
 
 float GRAVITY_SWITCH_PROBABILITY = 0.40;
 
@@ -39,10 +39,7 @@ void setup() {
   twistPointsVectorList.add(newPointsVector);
   twistPointsVectorList.add(newPointsVector);
 
-  velocityVector = new ArrayList();
-  velocityVector.add(0.0);
-  velocityVector.add(0.0);
-  velocityVector.add(0.0);
+  velocityVector = new PVector();
 
   isGravityOn = false;
 }
@@ -80,55 +77,70 @@ void draw() {
     isGravityOn = !isGravityOn;
   }
 
-  for (int iDimension = 0; iDimension < 3; iDimension++) {
-    float oldVelocity = velocityVector.get(iDimension);
-    float newVelocity = oldVelocity + random(-VELOCITY_STEP_SIZE, VELOCITY_STEP_SIZE);
-    
-    if (isGravityOn) {
-      ArrayList<Float> lastPointVector = linePointsVectorList.get(linePointsVectorList.size() - 1);
-      float lastPoint = lastPointVector.get(iDimension);
-      newVelocity -= Math.copySign(GRAVITY_STEP_SIZE, lastPoint);
-    }
-    
-    // Set terminal velocity
-    newVelocity = min(newVelocity,  MAX_VELOCITY);
-    newVelocity = max(newVelocity, -MAX_VELOCITY);
+  // Update velocity
+  PVector randomVelocityVector = PVector.random3D().mult(VELOCITY_STEP_SIZE);
+  velocityVector = velocityVector.add(randomVelocityVector);
 
-    velocityVector.set(iDimension, newVelocity);
+  if (isGravityOn) {
+    ArrayList<Float> lastPointList = linePointsVectorList.get(linePointsVectorList.size() - 1);
+    PVector lastPointVector = new PVector();
+    PVector originVector = new PVector(0, 0, 0);
+
+    lastPointVector.x = lastPointList.get(0);
+    lastPointVector.y = lastPointList.get(1);
+    lastPointVector.z = lastPointList.get(2);
+    
+    PVector gravityAccelerationVector = originVector.sub(lastPointVector).mult(GRAVITY_STEP_SIZE);
+
+    velocityVector = velocityVector.add(gravityAccelerationVector);
   }
   
-  println("Velocity: " + velocityVector.get(0) + ", " + velocityVector.get(1) + ", " + velocityVector.get(2) + ", ");
-
-  velocityVector.set(0, velocityVector.get(0) + random(-VELOCITY_STEP_SIZE, VELOCITY_STEP_SIZE));
-  velocityVector.set(1, velocityVector.get(1) + random(-VELOCITY_STEP_SIZE, VELOCITY_STEP_SIZE));
-  velocityVector.set(2, velocityVector.get(2) + random(-VELOCITY_STEP_SIZE, VELOCITY_STEP_SIZE));
+  // Set terminal velocity
+  velocityVector = velocityVector.limit(MAX_VELOCITY_MAGNITUDE);
+  
+  println("Velocity: " + velocityVector);
 
   boolean isLineMaximumLength = linePointsVectorList.size() > LINE_LENGTH; 
   if (isLineMaximumLength) {
     linePointsVectorList.remove(0);
     twistPointsVectorList.remove(0);
   }
-    
-  ArrayList<Float> lastPointsVector = linePointsVectorList.get(linePointsVectorList.size() - 1);
+
+  ArrayList<Float> lastPointList = linePointsVectorList.get(linePointsVectorList.size() - 1);
   
-  ArrayList<Float> newPointsVector = new ArrayList();
-  ArrayList<Float> newTwistVector  = new ArrayList();
+  ArrayList<Float> newPointList = new ArrayList();
+  ArrayList<Float> newTwistPointList  = new ArrayList();
+
+  PVector lastPointVector = new PVector();
+  lastPointVector.x = lastPointList.get(0);
+  lastPointVector.y = lastPointList.get(1);
+  lastPointVector.z = lastPointList.get(2);
+
+  PVector newPointVector = lastPointVector.add(velocityVector);
   
-  for (int iDimension = 0; iDimension < 3; iDimension++) {
-    float oldPoint = lastPointsVector.get(iDimension);
-    float newPoint = oldPoint + velocityVector.get(iDimension);
-    
-    float twistPoint = newPoint + TWIST_DISTANCE * cos(30 * log(iDimension + 0.3) * movementPhase);
-    
-    newPointsVector.add(newPoint);
-    newTwistVector.add(twistPoint);
+  PVector newTwistVector = new PVector(); 
+  
+  if (true) {
+    newTwistVector.x = newPointVector.x + TWIST_DISTANCE * cos(1 * log(0 + 0.3) * movementPhase);
+    newTwistVector.y = newPointVector.y + TWIST_DISTANCE * cos(1 * log(1 + 0.3) * movementPhase);
+    newTwistVector.z = newPointVector.z + TWIST_DISTANCE * cos(1 * log(2 + 0.3) * movementPhase);
+  
+    newPointList.add(newPointVector.x);
+    newPointList.add(newPointVector.y);
+    newPointList.add(newPointVector.z);
+  
+    newTwistPointList.add(newTwistVector.x);
+    newTwistPointList.add(newTwistVector.y);
+    newTwistPointList.add(newTwistVector.z);
+  
+    linePointsVectorList.add(newPointList);
+    twistPointsVectorList.add(newTwistPointList);
   }
-  linePointsVectorList.add(newPointsVector);
-  twistPointsVectorList.add(newTwistVector);
 
 
   noStroke();
   for (int iPoint = 0; iPoint < linePointsVectorList.size() - 1; iPoint++) {
+
     ArrayList<Float> currentPointVector = linePointsVectorList.get(iPoint);
     ArrayList<Float> nextPointVector    = linePointsVectorList.get(iPoint + 1);
     
@@ -156,12 +168,14 @@ void draw() {
       } else {
         fill(backLightColor);
       }
+
       beginShape();
-      vertex(xCurr,      yCurr,      zCurr + iSide);
-      vertex(xCurrTwist, yCurrTwist, zCurrTwist + iSide);
-      vertex(xNextTwist, yNextTwist, zNextTwist + iSide);
-      vertex(xNext,      yNext,      zNext + iSide);
-      vertex(xCurr,      yCurr,      zCurr + iSide);
+      float sideSeparation = 2;
+      vertex(xCurr,      yCurr,      zCurr      + sideSeparation * iSide);
+      vertex(xCurrTwist, yCurrTwist, zCurrTwist + sideSeparation * iSide);
+      vertex(xNextTwist, yNextTwist, zNextTwist + sideSeparation * iSide);
+      vertex(xNext,      yNext,      zNext      + sideSeparation * iSide);
+      vertex(xCurr,      yCurr,      zCurr      + sideSeparation * iSide);
       endShape();
     }
     
