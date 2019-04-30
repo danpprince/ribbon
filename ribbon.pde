@@ -5,12 +5,13 @@ ArrayList<PVector> twistPointsVectorList;
 
 int LINE_LENGTH = 200;
 
-float VELOCITY_STEP_SIZE = 0.40;
-float GRAVITY_STEP_SIZE  = 0.40;
+float VELOCITY_STEP_SIZE = 0.60;
+float GRAVITY_STEP_SIZE  = 0.60;
 
 float MAX_VELOCITY_MAGNITUDE = 20;
 
-float GRAVITY_SWITCH_PROBABILITY = 0.004;
+float GRAVITY_SWITCH_ON_PROBABILITY  = 0.010;
+float GRAVITY_SWITCH_OFF_PROBABILITY = 0.004;
 
 float TWIST_DISTANCE = 10.0;
 
@@ -20,7 +21,9 @@ float X_CUBE_LIMIT = 80;
 float Y_CUBE_LIMIT = 80;
 float Z_CUBE_LIMIT = 80;
 
-boolean IS_VISUALIZING_GRAVITY = true;
+float CUBE_BOUNCE_COEFFICIENT = 0.5;
+
+boolean IS_VISUALIZING_GRAVITY = false;
 
 float movementPhase = 0.0;
 
@@ -77,16 +80,16 @@ void draw() {
          0.0, 0.0, 0.0, // centerX, centerY, centerZ
          0.0, 1.0, 0.0); // upX, upY, upZ
 
-  boolean isGravitySwitching = GRAVITY_SWITCH_PROBABILITY > random(0.0, 1.0);
-  if (isGravitySwitching) {
-    isGravityOn = !isGravityOn;
-  }
-
   // Update velocity
   PVector randomVelocityVector = PVector.random3D().mult(VELOCITY_STEP_SIZE);
   velocityVector.add(randomVelocityVector);
 
   if (isGravityOn) {
+    boolean isGravitySwitchingOff = GRAVITY_SWITCH_OFF_PROBABILITY > random(0.0, 1.0);
+    if (isGravitySwitchingOff) {
+      isGravityOn = false;
+    }
+
     if (IS_VISUALIZING_GRAVITY) {
       sphere(10.0);
     }
@@ -98,6 +101,11 @@ void draw() {
     gravityAccelerationVector.normalize().mult(GRAVITY_STEP_SIZE);
 
     velocityVector.add(gravityAccelerationVector);
+  } else {
+    boolean isGravitySwitchingOn = GRAVITY_SWITCH_ON_PROBABILITY > random(0.0, 1.0);
+    if (isGravitySwitchingOn) {
+      isGravityOn = true;
+    }
   }
   velocityVector.limit(MAX_VELOCITY_MAGNITUDE);
 
@@ -120,19 +128,19 @@ void draw() {
   boolean isNewPointXOutsideCube = newPointVector.x > X_CUBE_LIMIT || newPointVector.x < -X_CUBE_LIMIT;
   if (isNewPointXOutsideCube) {
     newPointVector.x = max(-X_CUBE_LIMIT, min(X_CUBE_LIMIT, newPointVector.x));
-    velocityVector.x *= -0.8;
+    velocityVector.x *= -CUBE_BOUNCE_COEFFICIENT;
   }
 
   boolean isNewPointYOutsideCube = newPointVector.y > Y_CUBE_LIMIT || newPointVector.y < -Y_CUBE_LIMIT;
   if (isNewPointYOutsideCube) {
     newPointVector.y = max(-Y_CUBE_LIMIT, min(Y_CUBE_LIMIT, newPointVector.y));
-    velocityVector.y *= -0.8;
+    velocityVector.y *= -CUBE_BOUNCE_COEFFICIENT;
   }
 
   boolean isNewPointZOutsideCube = newPointVector.z > Z_CUBE_LIMIT || newPointVector.z < -Z_CUBE_LIMIT;
   if (isNewPointZOutsideCube) {
     newPointVector.z = max(-Z_CUBE_LIMIT, min(Z_CUBE_LIMIT, newPointVector.z));
-    velocityVector.z *= -0.8;
+    velocityVector.z *= -CUBE_BOUNCE_COEFFICIENT;
   }
 
 
