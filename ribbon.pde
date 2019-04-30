@@ -5,16 +5,20 @@ ArrayList<PVector> twistPointsVectorList;
 
 int LINE_LENGTH = 500;
 
-float VELOCITY_STEP_SIZE = 0.10;
+float VELOCITY_STEP_SIZE = 0.30;
 float GRAVITY_STEP_SIZE  = 0.10;
 
-float MAX_VELOCITY_MAGNITUDE = 16;
+float MAX_VELOCITY_MAGNITUDE = 20;
 
-float GRAVITY_SWITCH_PROBABILITY = 0.4;
+float GRAVITY_SWITCH_PROBABILITY = 0.04;
 
-float TWIST_DISTANCE = 15.0;
+float TWIST_DISTANCE = 10.0;
 
 float SIDE_SEPARATION_DISTANCE = 10.0;
+
+float X_CUBE_LIMIT = 80;
+float Y_CUBE_LIMIT = 80;
+float Z_CUBE_LIMIT = 80;
 
 float movementPhase = 0.0;
 
@@ -81,8 +85,8 @@ void draw() {
     PVector lastPointVector = linePointsVectorList.get(linePointsVectorList.size() - 1);
     PVector originPointVector = new PVector(0, 0, 0);
 
-    PVector gravityAccelerationVector = 
-      originPointVector.sub(lastPointVector).normalize().mult(GRAVITY_STEP_SIZE);
+    PVector gravityAccelerationVector = PVector.sub(originPointVector, lastPointVector);
+    gravityAccelerationVector.normalize().mult(GRAVITY_STEP_SIZE);
 
     velocityVector.add(gravityAccelerationVector);
   }
@@ -102,6 +106,12 @@ void draw() {
   newTwistPointVector.x = newPointVector.x + TWIST_DISTANCE * cos(1 * log(0 + 0.3) * movementPhase);
   newTwistPointVector.y = newPointVector.y + TWIST_DISTANCE * cos(1 * log(1 + 0.3) * movementPhase);
   newTwistPointVector.z = newPointVector.z + TWIST_DISTANCE * cos(1 * log(2 + 0.3) * movementPhase);
+
+  // Limit to a cube
+  newPointVector.x = max(-X_CUBE_LIMIT, min(X_CUBE_LIMIT, newPointVector.x));
+  newPointVector.y = max(-Y_CUBE_LIMIT, min(Y_CUBE_LIMIT, newPointVector.y));
+  newPointVector.z = max(-Z_CUBE_LIMIT, min(Z_CUBE_LIMIT, newPointVector.z));
+
 
   linePointsVectorList.add(newPointVector);
   twistPointsVectorList.add(newTwistPointVector);
