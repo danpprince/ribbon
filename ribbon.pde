@@ -55,11 +55,13 @@ void draw() {
   color backLightColor  = #ffcb05;
   color fillColor = color(150);
  
-  directionalLight(red(frontLightColor), green(frontLightColor), blue(frontLightColor), 0, 0, -2);
-  directionalLight(red(backLightColor), green(backLightColor), blue(backLightColor), 0, 0,  2);
+  color directionalLightColor = color(80);
+  directionalLight(red(directionalLightColor), green(directionalLightColor), green(directionalLightColor), 0, 0, -2);
+  directionalLight(red(directionalLightColor), green(directionalLightColor), green(directionalLightColor), 0, 0,  2);
   
   // Top light
-  directionalLight(130, 130, 130, 0, 5, 0);
+  color topLightColor = color(80);
+  directionalLight(red(topLightColor), blue(topLightColor), green(topLightColor), 0, 5, 0);
 
   
   ambientLight(red(ambientColor), green(ambientColor), blue(ambientColor));  
@@ -147,19 +149,26 @@ void draw() {
     float yNextTwist = nextTwistVector.get(1);
     float zNextTwist = nextTwistVector.get(2);
     
-    fill(fillColor);
-    beginShape();
-    vertex(xCurr,      yCurr,      zCurr);
-    vertex(xCurrTwist, yCurrTwist, zCurrTwist);
-    vertex(xNextTwist, yNextTwist, zNextTwist);
-    vertex(xNext,      yNext,      zNext);
-    vertex(xCurr,      yCurr,      zCurr);
-    endShape();
+    for (int iSide = 0; iSide < 2; iSide++) {
+      boolean isFrontSide = iSide == 0;
+      if (isFrontSide) {
+        fill(frontLightColor);
+      } else {
+        fill(backLightColor);
+      }
+      beginShape();
+      vertex(xCurr,      yCurr,      zCurr + iSide);
+      vertex(xCurrTwist, yCurrTwist, zCurrTwist + iSide);
+      vertex(xNextTwist, yNextTwist, zNextTwist + iSide);
+      vertex(xNext,      yNext,      zNext + iSide);
+      vertex(xCurr,      yCurr,      zCurr + iSide);
+      endShape();
+    }
     
     
     // Draw shadow
     float yShadow = 100;
-    fill(100);
+    fill(#4ad9d9);
     beginShape();
     vertex(xCurr,      yShadow, zCurr);
     vertex(xCurrTwist, yShadow, zCurrTwist);
@@ -170,7 +179,7 @@ void draw() {
 
   }
   
-  fill(180);
+  fill(#e9ffdf);
   beginShape();
   vertex( 100, 101, 100);
   vertex(-100, 101, 100);
