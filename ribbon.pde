@@ -51,8 +51,8 @@ void draw() {
   lights();
   color ambientColor = color(50);
   color backgroundColor = #36b1bf;
-  color frontLightColor = #f23c50;
-  color backLightColor  = #ffcb05;
+  color ribbon1Color = #f23c50;
+  color ribbon2Color = #ffcb05;
  
   color directionalLightColor = color(80);
   directionalLight(red(directionalLightColor), green(directionalLightColor), green(directionalLightColor), 0, 0, -2);
@@ -150,9 +150,9 @@ void draw() {
     for (int iSide = 0; iSide < 2; iSide++) {
       boolean isFrontSide = iSide == 0;
       if (isFrontSide) {
-        fill(frontLightColor);
+        fill(ribbon1Color);
       } else {
-        fill(backLightColor);
+        fill(ribbon2Color);
       }
 
       float sideSeparation = SIDE_SEPARATION_DISTANCE * iSide;
