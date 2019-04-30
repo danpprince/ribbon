@@ -3,14 +3,14 @@ PVector velocityVector;
 ArrayList<PVector> linePointsVectorList;
 ArrayList<PVector> twistPointsVectorList;
 
-int LINE_LENGTH = 500;
+int LINE_LENGTH = 200;
 
 float VELOCITY_STEP_SIZE = 0.40;
 float GRAVITY_STEP_SIZE  = 0.40;
 
 float MAX_VELOCITY_MAGNITUDE = 20;
 
-float GRAVITY_SWITCH_PROBABILITY = 0.04;
+float GRAVITY_SWITCH_PROBABILITY = 0.004;
 
 float TWIST_DISTANCE = 10.0;
 
@@ -51,8 +51,11 @@ void draw() {
   lights();
   color ambientColor = color(50);
   color backgroundColor = #36b1bf;
+
   color ribbon1Color = #f23c50;
-  color ribbon2Color = #ffcb05;
+  color ribbon2Color = #4ad9d9;
+  color ribbon3Color = #ffcb05;
+
  
   color directionalLightColor = color(80);
   directionalLight(red(directionalLightColor), green(directionalLightColor), green(directionalLightColor), 0, 0, -2);
@@ -147,12 +150,17 @@ void draw() {
     PVector currentTwistVector = twistPointsVectorList.get(iPoint);
     PVector nextTwistVector    = twistPointsVectorList.get(iPoint + 1);
 
-    for (int iSide = 0; iSide < 2; iSide++) {
-      boolean isFrontSide = iSide == 0;
-      if (isFrontSide) {
-        fill(ribbon1Color);
-      } else {
-        fill(ribbon2Color);
+    for (int iSide = 0; iSide < 3; iSide++) {
+      switch (iSide) {
+        case 0:
+          fill(ribbon1Color);
+          break;
+        case 1:
+          fill(ribbon2Color);
+          break;
+        case 2:
+          fill(ribbon3Color);
+          break;
       }
 
       float sideSeparation = SIDE_SEPARATION_DISTANCE * iSide;
