@@ -5,8 +5,8 @@ ArrayList<PVector> twistPointsVectorList;
 
 int LINE_LENGTH = 500;
 
-float VELOCITY_STEP_SIZE = 0.30;
-float GRAVITY_STEP_SIZE  = 0.10;
+float VELOCITY_STEP_SIZE = 0.40;
+float GRAVITY_STEP_SIZE  = 0.40;
 
 float MAX_VELOCITY_MAGNITUDE = 20;
 
@@ -19,6 +19,8 @@ float SIDE_SEPARATION_DISTANCE = 10.0;
 float X_CUBE_LIMIT = 80;
 float Y_CUBE_LIMIT = 80;
 float Z_CUBE_LIMIT = 80;
+
+boolean IS_VISUALIZING_GRAVITY = true;
 
 float movementPhase = 0.0;
 
@@ -82,6 +84,10 @@ void draw() {
   velocityVector.add(randomVelocityVector);
 
   if (isGravityOn) {
+    if (IS_VISUALIZING_GRAVITY) {
+      sphere(10.0);
+    }
+    
     PVector lastPointVector = linePointsVectorList.get(linePointsVectorList.size() - 1);
     PVector originPointVector = new PVector(0, 0, 0);
 
@@ -108,9 +114,23 @@ void draw() {
   newTwistPointVector.z = newPointVector.z + TWIST_DISTANCE * cos(1 * log(2 + 0.3) * movementPhase);
 
   // Limit to a cube
-  newPointVector.x = max(-X_CUBE_LIMIT, min(X_CUBE_LIMIT, newPointVector.x));
-  newPointVector.y = max(-Y_CUBE_LIMIT, min(Y_CUBE_LIMIT, newPointVector.y));
-  newPointVector.z = max(-Z_CUBE_LIMIT, min(Z_CUBE_LIMIT, newPointVector.z));
+  boolean isNewPointXOutsideCube = newPointVector.x > X_CUBE_LIMIT || newPointVector.x < -X_CUBE_LIMIT;
+  if (isNewPointXOutsideCube) {
+    newPointVector.x = max(-X_CUBE_LIMIT, min(X_CUBE_LIMIT, newPointVector.x));
+    velocityVector.x *= -0.8;
+  }
+
+  boolean isNewPointYOutsideCube = newPointVector.y > Y_CUBE_LIMIT || newPointVector.y < -Y_CUBE_LIMIT;
+  if (isNewPointYOutsideCube) {
+    newPointVector.y = max(-Y_CUBE_LIMIT, min(Y_CUBE_LIMIT, newPointVector.y));
+    velocityVector.y *= -0.8;
+  }
+
+  boolean isNewPointZOutsideCube = newPointVector.z > Z_CUBE_LIMIT || newPointVector.z < -Z_CUBE_LIMIT;
+  if (isNewPointZOutsideCube) {
+    newPointVector.z = max(-Z_CUBE_LIMIT, min(Z_CUBE_LIMIT, newPointVector.z));
+    velocityVector.z *= -0.8;
+  }
 
 
   linePointsVectorList.add(newPointVector);
