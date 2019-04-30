@@ -7,14 +7,14 @@ ArrayList<ArrayList<Float>> twistPointsVectorList;
 
 int LINE_LENGTH = 500;
 
-float VELOCITY_STEP_SIZE = 0.30;
-float GRAVITY_STEP_SIZE  = 1.00;
+float VELOCITY_STEP_SIZE = 0.10;
+float GRAVITY_STEP_SIZE  = 0.50;
 
 float MAX_VELOCITY = 8;
 
 float GRAVITY_SWITCH_PROBABILITY = 0.40;
 
-float TWIST_DISTANCE = 5.0;
+float TWIST_DISTANCE = 15.0;
 
 float movementPhase = 0.0;
 
