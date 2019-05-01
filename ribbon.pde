@@ -40,7 +40,7 @@ void setup() {
   linePointsVectorList  = new ArrayList<PVector>();
   twistPointsVectorList = new ArrayList<PVector>();
 
-  PVector newPointVector = new PVector(); 
+  PVector newPointVector = PVector.random3D().mult(X_CUBE_LIMIT); 
   
   // Add two points initially so velocity logic simplifies
   linePointsVectorList.add(newPointVector);
