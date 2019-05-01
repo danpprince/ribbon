@@ -3,17 +3,17 @@ PVector velocityVector;
 ArrayList<PVector> linePointsVectorList;
 ArrayList<PVector> twistPointsVectorList;
 
-int LINE_LENGTH = 600;
+int LINE_LENGTH = 1000;
 
 float VELOCITY_STEP_SIZE = 0.001;
 float GRAVITY_STEP_SIZE  = 0.90;
 
-float REPELLANCE_ACCELERATION_COEFFICIENT = 0.3;
+float REPELLANCE_ACCELERATION_COEFFICIENT = 0.1;
 
 float MAX_VELOCITY_MAGNITUDE = 2;
 
-float GRAVITY_SWITCH_ON_PROBABILITY  = 0.010;
-float GRAVITY_SWITCH_OFF_PROBABILITY = 0.004;
+float GRAVITY_SWITCH_ON_PROBABILITY  = 0.013;
+float GRAVITY_SWITCH_OFF_PROBABILITY = 0.009;
 
 float TWIST_DISTANCE = 5.0;
 
@@ -23,7 +23,7 @@ float X_CUBE_LIMIT = 80;
 float Y_CUBE_LIMIT = 80;
 float Z_CUBE_LIMIT = 80;
 
-float CUBE_BOUNCE_COEFFICIENT = 2;
+float CUBE_BOUNCE_COEFFICIENT = 0.02;
 
 boolean IS_VISUALIZING_GRAVITY = true;
 
@@ -130,8 +130,6 @@ void draw() {
     velocityVector.add(velocityUpdate);
   }
   
-  velocityVector.limit(MAX_VELOCITY_MAGNITUDE);
-
   
   PVector newTwistPointVector = new PVector();
   newTwistPointVector.x = newPointVector.x + TWIST_DISTANCE * cos(1 * log(0 + 0.3) * movementPhase);
@@ -156,6 +154,8 @@ void draw() {
     newPointVector.z = max(-Z_CUBE_LIMIT, min(Z_CUBE_LIMIT, newPointVector.z));
     velocityVector.z *= -CUBE_BOUNCE_COEFFICIENT;
   }
+
+  velocityVector.limit(MAX_VELOCITY_MAGNITUDE);
 
 
   linePointsVectorList.add(newPointVector);
