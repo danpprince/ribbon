@@ -40,8 +40,22 @@ float CUBE_BOUNCE_COEFFICIENT = 0.02;
 boolean IS_VISUALIZING_GRAVITY = false;
 
 // Defines whether each frame should be saved to disk for generating a movie
-boolean IS_IMAGE_SAVING_ON = true;
+boolean IS_IMAGE_SAVING_ON = false;
 
+
+// Define all colors
+color AMBIENT_LIGHT_COLOR = color(160);
+color DIRECTIONAL_LIGHT_COLOR = color(200);
+color TOP_LIGHT_COLOR = color(90);
+
+color BACKGROUND_COLOR = #36b1bf;
+
+color RIBBON_1_COLOR = #f23c50;
+color RIBBON_2_COLOR = #4ad9d9;
+color RIBBON_3_COLOR = #ffcb05;
+
+color SHADOW_COLOR = #4ad9d9;
+color BASE_COLOR = #e9ffdf;
 
 
 // Global state variables
@@ -71,26 +85,20 @@ void setup() {
   velocityVector = new PVector();
 }
 
+
+void drawLightsAndBackground() {
+  directionalLight(red(DIRECTIONAL_LIGHT_COLOR), green(DIRECTIONAL_LIGHT_COLOR), green(DIRECTIONAL_LIGHT_COLOR), 0, 0, -2);
+  directionalLight(red(DIRECTIONAL_LIGHT_COLOR), green(DIRECTIONAL_LIGHT_COLOR), green(DIRECTIONAL_LIGHT_COLOR), 0, 0,  2);
+  
+  directionalLight(red(TOP_LIGHT_COLOR), blue(TOP_LIGHT_COLOR), green(TOP_LIGHT_COLOR), 0, 5, 0);
+
+  ambientLight(red(AMBIENT_LIGHT_COLOR), green(AMBIENT_LIGHT_COLOR), blue(AMBIENT_LIGHT_COLOR));  
+  background(BACKGROUND_COLOR);
+}
+
+
 void draw() {
-  color ambientColor = color(160);
-  color backgroundColor = #36b1bf;
-
-  color ribbon1Color = #f23c50;
-  color ribbon2Color = #4ad9d9;
-  color ribbon3Color = #ffcb05;
-
- 
-  color directionalLightColor = color(200);
-  directionalLight(red(directionalLightColor), green(directionalLightColor), green(directionalLightColor), 0, 0, -2);
-  directionalLight(red(directionalLightColor), green(directionalLightColor), green(directionalLightColor), 0, 0,  2);
-  
-  // Top light
-  color topLightColor = color(90);
-  directionalLight(red(topLightColor), blue(topLightColor), green(topLightColor), 0, 5, 0);
-
-  
-  ambientLight(red(ambientColor), green(ambientColor), blue(ambientColor));  
-  background(backgroundColor);
+  drawLightsAndBackground();
 
   float eyeZ = 300 * sin(movementPhase);
   float eyeX = 300 * cos(movementPhase);
@@ -138,7 +146,7 @@ void draw() {
 
   PVector lastPointVector = linePointsVectorList.get(linePointsVectorList.size() - 1);
   PVector newPointVector = PVector.add(lastPointVector, velocityVector);
-  
+
   // Avoid previously generated points. Skip the first several points in this calculation
   // so the ribbon doesn't tend to move in a straight line.
   for (int iPoint = 50; iPoint < linePointsVectorList.size() - 1; iPoint++) {
@@ -198,13 +206,13 @@ void draw() {
     for (int iRibbon = 0; iRibbon < 3; iRibbon++) {
       switch (iRibbon) {
         case 0:
-          fill(ribbon1Color);
+          fill(RIBBON_1_COLOR);
           break;
         case 1:
-          fill(ribbon2Color);
+          fill(RIBBON_2_COLOR);
           break;
         case 2:
-          fill(ribbon3Color);
+          fill(RIBBON_3_COLOR);
           break;
       }
 
@@ -220,7 +228,7 @@ void draw() {
   
       // Draw shadow
       float yShadow = 100;
-      fill(#4ad9d9);
+      fill(SHADOW_COLOR);
       beginShape();
       vertex(currentPointVector.x, yShadow, currentPointVector.z + ribbonSeparation);
       vertex(currentTwistVector.x, yShadow, currentTwistVector.z + ribbonSeparation);
@@ -233,7 +241,7 @@ void draw() {
   }
 
   // Draw base plane
-  fill(#e9ffdf);
+  fill(BASE_COLOR);
   beginShape();
   vertex( 120, 101,  120);
   vertex(-120, 101,  120);
