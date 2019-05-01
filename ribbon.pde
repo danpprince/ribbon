@@ -9,12 +9,12 @@ float VELOCITY_STEP_SIZE = 0.1;
 float GRAVITY_STEP_SIZE  = 0.90;
 
 float REPELLANCE_ACCELERATION_COEFFICIENT = 0.9;
-float REPELLANCE_DISTANCE_THRESHOLD = 50;
+float REPELLANCE_DISTANCE_THRESHOLD = 60;
 
 float MAX_VELOCITY_MAGNITUDE = 2;
 
 float GRAVITY_SWITCH_ON_PROBABILITY  = 0.013;
-float GRAVITY_SWITCH_OFF_PROBABILITY = 0.009;
+float GRAVITY_SWITCH_OFF_PROBABILITY = 0.00;
 
 float TWIST_DISTANCE = 5.0;
 
@@ -27,6 +27,8 @@ float Z_CUBE_LIMIT = 80;
 float CUBE_BOUNCE_COEFFICIENT = 0.02;
 
 boolean IS_VISUALIZING_GRAVITY = false;
+
+boolean IS_IMAGE_SAVING_ON = true;
 
 float movementPhase = 0.0;
 
@@ -50,7 +52,7 @@ void setup() {
 
   velocityVector = new PVector();
 
-  isGravityOn = false;
+  isGravityOn = true;
 }
 
 void draw() {
@@ -222,4 +224,9 @@ void draw() {
   vertex(-120, 101, -120);
   vertex( 120, 101, -120);
   endShape();
+  
+  
+  if (IS_IMAGE_SAVING_ON) {
+    saveFrame("saved-frames/out-####.png");
+  }
 }
