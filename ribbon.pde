@@ -5,10 +5,11 @@ ArrayList<PVector> twistPointsVectorList;
 
 int LINE_LENGTH = 1000;
 
-float VELOCITY_STEP_SIZE = 0.001;
+float VELOCITY_STEP_SIZE = 0.1;
 float GRAVITY_STEP_SIZE  = 0.90;
 
-float REPELLANCE_ACCELERATION_COEFFICIENT = 0.1;
+float REPELLANCE_ACCELERATION_COEFFICIENT = 0.9;
+float REPELLANCE_DISTANCE_THRESHOLD = 50;
 
 float MAX_VELOCITY_MAGNITUDE = 2;
 
@@ -25,7 +26,7 @@ float Z_CUBE_LIMIT = 80;
 
 float CUBE_BOUNCE_COEFFICIENT = 0.02;
 
-boolean IS_VISUALIZING_GRAVITY = true;
+boolean IS_VISUALIZING_GRAVITY = false;
 
 float movementPhase = 0.0;
 
@@ -120,14 +121,18 @@ void draw() {
   PVector lastPointVector = linePointsVectorList.get(linePointsVectorList.size() - 1);
   PVector newPointVector = PVector.add(lastPointVector, velocityVector);
   
-  // Avoid ribbon tail
-  for (int iPoint = 0; iPoint < linePointsVectorList.size() - 1; iPoint++) {
+  // Avoid previously generated points. Skip the first several points in this calculation
+  // so the ribbon doesn't tend to move in a straight line.
+  for (int iPoint = 50; iPoint < linePointsVectorList.size() - 1; iPoint++) {
     PVector currentPoint = linePointsVectorList.get(iPoint);
-    float newPointDistance = sq(PVector.dist(newPointVector, currentPoint));
+    float newPointDistance = PVector.dist(newPointVector, currentPoint);
 
-    PVector velocityUpdate = PVector.sub(newPointVector, currentPoint);
-    velocityUpdate.mult(REPELLANCE_ACCELERATION_COEFFICIENT / newPointDistance);
-    velocityVector.add(velocityUpdate);
+    boolean isPointWithinDistanceThreshold = newPointDistance < REPELLANCE_DISTANCE_THRESHOLD;
+    if (isPointWithinDistanceThreshold) {
+      PVector velocityUpdate = PVector.sub(newPointVector, currentPoint);
+      velocityUpdate.mult(REPELLANCE_ACCELERATION_COEFFICIENT / sq(newPointDistance));
+      velocityVector.add(velocityUpdate);
+    }
   }
   
   
