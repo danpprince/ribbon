@@ -97,9 +97,7 @@ void drawLightsAndBackground() {
 }
 
 
-void draw() {
-  drawLightsAndBackground();
-
+void updateCamera() {
   float eyeZ = 300 * sin(movementPhase);
   float eyeX = 300 * cos(movementPhase);
   movementPhase += 0.01;
@@ -107,10 +105,14 @@ void draw() {
   camera(eyeX, 10.0, eyeZ, // eyeX, eyeY, eyeZ
          0.0, 0.0, 0.0, // centerX, centerY, centerZ
          0.0, 1.0, 0.0); // upX, upY, upZ
+}
 
-  // Update velocity
+
+void updateVelocity() {
   PVector randomVelocityVector = PVector.random3D().mult(RANDOM_ACCELERATION);
   velocityVector.add(randomVelocityVector);
+
+  PVector lastPointVector = linePointsVectorList.get(linePointsVectorList.size() - 1);
 
   if (isGravityOn) {
     boolean isGravitySwitchingOff = GRAVITY_SWITCH_OFF_PROBABILITY > random(0.0, 1.0);
@@ -123,7 +125,6 @@ void draw() {
       sphere(10.0);
     }
     
-    PVector lastPointVector = linePointsVectorList.get(linePointsVectorList.size() - 1);
     PVector originPointVector = new PVector(0, 0, 0);
 
     PVector gravityAccelerationVector = PVector.sub(originPointVector, lastPointVector);
@@ -137,8 +138,26 @@ void draw() {
     }
   }
 
+  // Avoid previously generated points. Skip the first several points in this calculation
+  // so the ribbon doesn't tend to move in a straight line.
+  for (int iPoint = 50; iPoint < linePointsVectorList.size() - 1; iPoint++) {
+    PVector currentPoint = linePointsVectorList.get(iPoint);
+    float newPointDistance = PVector.dist(lastPointVector, currentPoint);
 
-  boolean isLineMaximumLength = linePointsVectorList.size() > RIBBON_LENGTH; 
+    boolean isPointWithinDistanceThreshold = newPointDistance < REPELLANCE_DISTANCE_THRESHOLD;
+    if (isPointWithinDistanceThreshold) {
+      PVector velocityUpdate = PVector.sub(lastPointVector, currentPoint);
+      velocityUpdate.mult(REPELLANCE_ACCELERATION / sq(newPointDistance));
+      velocityVector.add(velocityUpdate);
+    }
+  }
+
+  velocityVector.limit(MAX_VELOCITY_MAGNITUDE);
+
+}
+
+void generateNewPoint() {
+    boolean isLineMaximumLength = linePointsVectorList.size() > RIBBON_LENGTH; 
   if (isLineMaximumLength) {
     linePointsVectorList.remove(0);
     twistPointsVectorList.remove(0);
@@ -147,27 +166,7 @@ void draw() {
   PVector lastPointVector = linePointsVectorList.get(linePointsVectorList.size() - 1);
   PVector newPointVector = PVector.add(lastPointVector, velocityVector);
 
-  // Avoid previously generated points. Skip the first several points in this calculation
-  // so the ribbon doesn't tend to move in a straight line.
-  for (int iPoint = 50; iPoint < linePointsVectorList.size() - 1; iPoint++) {
-    PVector currentPoint = linePointsVectorList.get(iPoint);
-    float newPointDistance = PVector.dist(newPointVector, currentPoint);
-
-    boolean isPointWithinDistanceThreshold = newPointDistance < REPELLANCE_DISTANCE_THRESHOLD;
-    if (isPointWithinDistanceThreshold) {
-      PVector velocityUpdate = PVector.sub(newPointVector, currentPoint);
-      velocityUpdate.mult(REPELLANCE_ACCELERATION / sq(newPointDistance));
-      velocityVector.add(velocityUpdate);
-    }
-  }
-  
-  
-  PVector newTwistPointVector = new PVector();
-  newTwistPointVector.x = newPointVector.x + RIBBON_WIDTH * cos(1 * log(0 + 0.3) * movementPhase);
-  newTwistPointVector.y = newPointVector.y + RIBBON_WIDTH * cos(1 * log(1 + 0.3) * movementPhase);
-  newTwistPointVector.z = newPointVector.z + RIBBON_WIDTH * cos(1 * log(2 + 0.3) * movementPhase);
-
-  // Limit to a cube
+  // Limit new points to a cube and bounce velocity if necessary
   boolean isNewPointXOutsideCube = newPointVector.x > X_CUBE_LIMIT || newPointVector.x < -X_CUBE_LIMIT;
   if (isNewPointXOutsideCube) {
     newPointVector.x = max(-X_CUBE_LIMIT, min(X_CUBE_LIMIT, newPointVector.x));
@@ -185,15 +184,20 @@ void draw() {
     newPointVector.z = max(-Z_CUBE_LIMIT, min(Z_CUBE_LIMIT, newPointVector.z));
     velocityVector.z *= -CUBE_BOUNCE_COEFFICIENT;
   }
-
   velocityVector.limit(MAX_VELOCITY_MAGNITUDE);
+
+
+  PVector newTwistPointVector = new PVector();
+  newTwistPointVector.x = newPointVector.x + RIBBON_WIDTH * cos(1 * log(0 + 0.3) * movementPhase);
+  newTwistPointVector.y = newPointVector.y + RIBBON_WIDTH * cos(1 * log(1 + 0.3) * movementPhase);
+  newTwistPointVector.z = newPointVector.z + RIBBON_WIDTH * cos(1 * log(2 + 0.3) * movementPhase);
 
 
   linePointsVectorList.add(newPointVector);
   twistPointsVectorList.add(newTwistPointVector);
+}
 
-
-
+void drawRibbonsAndBase() {
   noStroke();
   for (int iPoint = 0; iPoint < linePointsVectorList.size() - 1; iPoint++) {
 
@@ -237,7 +241,6 @@ void draw() {
       vertex(currentPointVector.x, yShadow, currentPointVector.z + ribbonSeparation);
       endShape();
     }
-
   }
 
   // Draw base plane
@@ -248,8 +251,17 @@ void draw() {
   vertex(-120, 101, -120);
   vertex( 120, 101, -120);
   endShape();
-  
-  
+}
+
+
+void draw() {
+  drawLightsAndBackground();
+  updateCamera();
+  updateVelocity();
+  generateNewPoint();
+  drawRibbonsAndBase();
+
+
   if (IS_IMAGE_SAVING_ON) {
     saveFrame("saved-frames/out-####.png");
     
