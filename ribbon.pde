@@ -1,38 +1,56 @@
-PVector velocityVector;
+// Global constants
 
-ArrayList<PVector> linePointsVectorList;
-ArrayList<PVector> twistPointsVectorList;
+// Defines the maximum number of points in a ribbon
+int RIBBON_LENGTH = 1000;
 
-int LINE_LENGTH = 1000;
+// Defines the amount of acceleration of new points in a random direction
+float RANDOM_ACCELERATION = 0.1;
 
-float VELOCITY_STEP_SIZE = 0.1;
-float GRAVITY_STEP_SIZE  = 0.90;
+// Defines the amount of acceleration of new points towards the center of the space
+float GRAVITY_ACCELERATION = 0.9;
 
-float REPELLANCE_ACCELERATION_COEFFICIENT = 0.9;
+// Defines the amount of acceleration of new points away from old points
+float REPELLANCE_ACCELERATION = 0.9;
+
+// Defines the maximum distance at which old points repel new points 
 float REPELLANCE_DISTANCE_THRESHOLD = 60;
 
+// Defines a limit on the maximum velocity magnitude to control speed
 float MAX_VELOCITY_MAGNITUDE = 2;
 
+// Defines the probability at each frame that gravity will turn on if it is off (and vice versa)
 float GRAVITY_SWITCH_ON_PROBABILITY  = 0.013;
 float GRAVITY_SWITCH_OFF_PROBABILITY = 0.00;
 
-float TWIST_DISTANCE = 5.0;
+// Defines the width of each ribbon
+float RIBBON_WIDTH = 5.0;
 
-float SIDE_SEPARATION_DISTANCE = 5.0;
+// Defines the distance between each ribbon
+float RIBBON_SEPARATION_DISTANCE = 5.0;
 
+// Defines the limits on the cubic space where points can be generated
 float X_CUBE_LIMIT = 80;
 float Y_CUBE_LIMIT = 80;
 float Z_CUBE_LIMIT = 80;
 
+// Defines the amount of bounce that the sides of the cubic space (higher values create more bounce)
 float CUBE_BOUNCE_COEFFICIENT = 0.02;
 
+// Defines whether a sphere should be drawn in the center when gravity is on
 boolean IS_VISUALIZING_GRAVITY = false;
 
+// Defines whether each frame should be saved to disk for generating a movie
 boolean IS_IMAGE_SAVING_ON = true;
 
-float movementPhase = 0.0;
 
-boolean isGravityOn;
+
+// Global state variables
+float movementPhase = 0.0;
+boolean isGravityOn = true;
+PVector velocityVector;
+ArrayList<PVector> linePointsVectorList;
+ArrayList<PVector> twistPointsVectorList;
+
 
 void setup() {
   frameRate(30);
@@ -51,8 +69,6 @@ void setup() {
   twistPointsVectorList.add(newPointVector);
 
   velocityVector = new PVector();
-
-  isGravityOn = true;
 }
 
 void draw() {
@@ -85,7 +101,7 @@ void draw() {
          0.0, 1.0, 0.0); // upX, upY, upZ
 
   // Update velocity
-  PVector randomVelocityVector = PVector.random3D().mult(VELOCITY_STEP_SIZE);
+  PVector randomVelocityVector = PVector.random3D().mult(RANDOM_ACCELERATION);
   velocityVector.add(randomVelocityVector);
 
   if (isGravityOn) {
@@ -103,7 +119,7 @@ void draw() {
     PVector originPointVector = new PVector(0, 0, 0);
 
     PVector gravityAccelerationVector = PVector.sub(originPointVector, lastPointVector);
-    gravityAccelerationVector.normalize().mult(GRAVITY_STEP_SIZE);
+    gravityAccelerationVector.normalize().mult(GRAVITY_ACCELERATION);
 
     velocityVector.add(gravityAccelerationVector);
   } else {
@@ -114,7 +130,7 @@ void draw() {
   }
 
 
-  boolean isLineMaximumLength = linePointsVectorList.size() > LINE_LENGTH; 
+  boolean isLineMaximumLength = linePointsVectorList.size() > RIBBON_LENGTH; 
   if (isLineMaximumLength) {
     linePointsVectorList.remove(0);
     twistPointsVectorList.remove(0);
@@ -132,16 +148,16 @@ void draw() {
     boolean isPointWithinDistanceThreshold = newPointDistance < REPELLANCE_DISTANCE_THRESHOLD;
     if (isPointWithinDistanceThreshold) {
       PVector velocityUpdate = PVector.sub(newPointVector, currentPoint);
-      velocityUpdate.mult(REPELLANCE_ACCELERATION_COEFFICIENT / sq(newPointDistance));
+      velocityUpdate.mult(REPELLANCE_ACCELERATION / sq(newPointDistance));
       velocityVector.add(velocityUpdate);
     }
   }
   
   
   PVector newTwistPointVector = new PVector();
-  newTwistPointVector.x = newPointVector.x + TWIST_DISTANCE * cos(1 * log(0 + 0.3) * movementPhase);
-  newTwistPointVector.y = newPointVector.y + TWIST_DISTANCE * cos(1 * log(1 + 0.3) * movementPhase);
-  newTwistPointVector.z = newPointVector.z + TWIST_DISTANCE * cos(1 * log(2 + 0.3) * movementPhase);
+  newTwistPointVector.x = newPointVector.x + RIBBON_WIDTH * cos(1 * log(0 + 0.3) * movementPhase);
+  newTwistPointVector.y = newPointVector.y + RIBBON_WIDTH * cos(1 * log(1 + 0.3) * movementPhase);
+  newTwistPointVector.z = newPointVector.z + RIBBON_WIDTH * cos(1 * log(2 + 0.3) * movementPhase);
 
   // Limit to a cube
   boolean isNewPointXOutsideCube = newPointVector.x > X_CUBE_LIMIT || newPointVector.x < -X_CUBE_LIMIT;
@@ -179,8 +195,8 @@ void draw() {
     PVector currentTwistVector = twistPointsVectorList.get(iPoint);
     PVector nextTwistVector    = twistPointsVectorList.get(iPoint + 1);
 
-    for (int iSide = 0; iSide < 3; iSide++) {
-      switch (iSide) {
+    for (int iRibbon = 0; iRibbon < 3; iRibbon++) {
+      switch (iRibbon) {
         case 0:
           fill(ribbon1Color);
           break;
@@ -192,25 +208,25 @@ void draw() {
           break;
       }
 
-      float sideSeparation = SIDE_SEPARATION_DISTANCE * iSide;
+      float ribbonSeparation = RIBBON_SEPARATION_DISTANCE * iRibbon;
 
       beginShape();
-      vertex(currentPointVector.x, currentPointVector.y, currentPointVector.z + sideSeparation);
-      vertex(currentTwistVector.x, currentTwistVector.y, currentTwistVector.z + sideSeparation);
-      vertex(nextTwistVector.x,    nextTwistVector.y,    nextTwistVector.z    + sideSeparation);
-      vertex(nextPointVector.x,    nextPointVector.y,    nextPointVector.z    + sideSeparation);
-      vertex(currentPointVector.x, currentPointVector.y, currentPointVector.z + sideSeparation);
+      vertex(currentPointVector.x, currentPointVector.y, currentPointVector.z + ribbonSeparation);
+      vertex(currentTwistVector.x, currentTwistVector.y, currentTwistVector.z + ribbonSeparation);
+      vertex(nextTwistVector.x,    nextTwistVector.y,    nextTwistVector.z    + ribbonSeparation);
+      vertex(nextPointVector.x,    nextPointVector.y,    nextPointVector.z    + ribbonSeparation);
+      vertex(currentPointVector.x, currentPointVector.y, currentPointVector.z + ribbonSeparation);
       endShape();
   
       // Draw shadow
       float yShadow = 100;
       fill(#4ad9d9);
       beginShape();
-      vertex(currentPointVector.x, yShadow, currentPointVector.z + sideSeparation);
-      vertex(currentTwistVector.x, yShadow, currentTwistVector.z + sideSeparation);
-      vertex(nextTwistVector.x,    yShadow, nextTwistVector.z    + sideSeparation);
-      vertex(nextPointVector.x,    yShadow, nextPointVector.z    + sideSeparation);
-      vertex(currentPointVector.x, yShadow, currentPointVector.z + sideSeparation);
+      vertex(currentPointVector.x, yShadow, currentPointVector.z + ribbonSeparation);
+      vertex(currentTwistVector.x, yShadow, currentTwistVector.z + ribbonSeparation);
+      vertex(nextTwistVector.x,    yShadow, nextTwistVector.z    + ribbonSeparation);
+      vertex(nextPointVector.x,    yShadow, nextPointVector.z    + ribbonSeparation);
+      vertex(currentPointVector.x, yShadow, currentPointVector.z + ribbonSeparation);
       endShape();
     }
 
@@ -228,5 +244,10 @@ void draw() {
   
   if (IS_IMAGE_SAVING_ON) {
     saveFrame("saved-frames/out-####.png");
+    
+    boolean is1MinuteSaved = frameCount >= 1800;
+    if (is1MinuteSaved) {
+      exit();
+    }
   }
 }
