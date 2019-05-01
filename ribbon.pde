@@ -3,27 +3,29 @@ PVector velocityVector;
 ArrayList<PVector> linePointsVectorList;
 ArrayList<PVector> twistPointsVectorList;
 
-int LINE_LENGTH = 200;
+int LINE_LENGTH = 600;
 
-float VELOCITY_STEP_SIZE = 0.60;
-float GRAVITY_STEP_SIZE  = 0.60;
+float VELOCITY_STEP_SIZE = 0.001;
+float GRAVITY_STEP_SIZE  = 0.90;
 
-float MAX_VELOCITY_MAGNITUDE = 20;
+float REPELLANCE_ACCELERATION_COEFFICIENT = 0.2;
+
+float MAX_VELOCITY_MAGNITUDE = 4;
 
 float GRAVITY_SWITCH_ON_PROBABILITY  = 0.010;
 float GRAVITY_SWITCH_OFF_PROBABILITY = 0.004;
 
-float TWIST_DISTANCE = 20.0;
+float TWIST_DISTANCE = 5.0;
 
-float SIDE_SEPARATION_DISTANCE = 10.0;
+float SIDE_SEPARATION_DISTANCE = 5.0;
 
 float X_CUBE_LIMIT = 80;
 float Y_CUBE_LIMIT = 80;
 float Z_CUBE_LIMIT = 80;
 
-float CUBE_BOUNCE_COEFFICIENT = 0.5;
+float CUBE_BOUNCE_COEFFICIENT = 0.3;
 
-boolean IS_VISUALIZING_GRAVITY = false;
+boolean IS_VISUALIZING_GRAVITY = true;
 
 float movementPhase = 0.0;
 
@@ -73,7 +75,7 @@ void draw() {
 
   float eyeZ = 300 * sin(movementPhase);
   float eyeX = 300 * cos(movementPhase);
-  movementPhase += 0.02;
+  movementPhase += 0.01;
 
   camera(eyeX, 10.0, eyeZ, // eyeX, eyeY, eyeZ
          0.0, 0.0, 0.0, // centerX, centerY, centerZ
@@ -90,6 +92,7 @@ void draw() {
     }
 
     if (IS_VISUALIZING_GRAVITY) {
+      fill(#e9ffdf);
       sphere(10.0);
     }
     
@@ -106,7 +109,6 @@ void draw() {
       isGravityOn = true;
     }
   }
-  velocityVector.limit(MAX_VELOCITY_MAGNITUDE);
 
 
   boolean isLineMaximumLength = linePointsVectorList.size() > LINE_LENGTH; 
@@ -117,7 +119,20 @@ void draw() {
 
   PVector lastPointVector = linePointsVectorList.get(linePointsVectorList.size() - 1);
   PVector newPointVector = PVector.add(lastPointVector, velocityVector);
+  
+  // Avoid ribbon tail
+  for (int iPoint = 0; iPoint < linePointsVectorList.size() - 1; iPoint++) {
+    PVector currentPoint = linePointsVectorList.get(iPoint);
+    float newPointDistance = sq(PVector.dist(newPointVector, currentPoint));
 
+    PVector velocityUpdate = PVector.sub(newPointVector, currentPoint);
+    velocityUpdate.mult(REPELLANCE_ACCELERATION_COEFFICIENT / newPointDistance);
+    velocityVector.add(velocityUpdate);
+  }
+  
+  velocityVector.limit(MAX_VELOCITY_MAGNITUDE);
+
+  
   PVector newTwistPointVector = new PVector();
   newTwistPointVector.x = newPointVector.x + TWIST_DISTANCE * cos(1 * log(0 + 0.3) * movementPhase);
   newTwistPointVector.y = newPointVector.y + TWIST_DISTANCE * cos(1 * log(1 + 0.3) * movementPhase);
@@ -197,9 +212,9 @@ void draw() {
   // Draw base plane
   fill(#e9ffdf);
   beginShape();
-  vertex( 100, 101, 100);
-  vertex(-100, 101, 100);
-  vertex(-100, 101, -100);
-  vertex( 100, 101, -100);
+  vertex( 120, 101,  120);
+  vertex(-120, 101,  120);
+  vertex(-120, 101, -120);
+  vertex( 120, 101, -120);
   endShape();
 }
